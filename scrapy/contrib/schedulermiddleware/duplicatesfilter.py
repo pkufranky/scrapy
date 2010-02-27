@@ -20,7 +20,7 @@ class DuplicatesFilterMiddleware(object):
     def enqueue_request(self, spider, request):
         seen = self.dupefilter.request_seen(spider, request)
         if seen and not request.dont_filter:
-            raise IgnoreRequest('Skipped (request already seen)')
+            raise IgnoreRequest('Skipped (request already seen): %s' % request.url)
 
     def open_spider(self, spider):
         self.dupefilter.open_spider(spider)
