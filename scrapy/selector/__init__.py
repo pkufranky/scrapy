@@ -133,8 +133,22 @@ class XPathSelectorList(list):
         XPathSelector of the list"""
         return [x.extract() if isinstance(x, XPathSelector) else x for x in self]
 
+    def extract1(self):
+        """Return a unicode string of the content referenced by the first
+        XPathSelector of the list, or None if the list is empty"""
+        for x in self:
+            if isinstance(x, XPathSelector):
+                return x.extract()
+        return None
+
     def extract_unquoted(self):
         return [x.extract_unquoted() if isinstance(x, XPathSelector) else x for x in self]
+
+    def extract_unquoted1(self):
+        for x in self:
+            if isinstance(x, XPathSelector):
+                return x.extract_unquoted()
+        return None
 
     @deprecated(use_instead='XPathSelectorList.select')
     def x(self, xpath):
