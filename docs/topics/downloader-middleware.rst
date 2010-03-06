@@ -276,6 +276,15 @@ Number of seconds to use for HTTP cache expiration. Requests that were cached
 before this time will be re-downloaded. If zero, cached requests will always
 expire. A negative number means requests will never expire.
 
+.. setting:: HTTPCACHE_IGNORE_HTTP_CODES
+
+HTTPCACHE_IGNORE_HTTP_CODES
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Default: ``[]``
+
+Don't cache response with these HTTP codes.
+
 .. setting:: HTTPCACHE_IGNORE_MISSING
 
 HTTPCACHE_IGNORE_MISSING
