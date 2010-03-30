@@ -13,6 +13,7 @@ from scrapy.utils.trackref import object_ref
 from scrapy.utils.decorator import deprecated
 from .factories import xmlDoc_from_html, xmlDoc_from_xml
 from .document import Libxml2Document
+from .csspath import css2xpath
 
 __all__ = ['HtmlXPathSelector', 'XmlXPathSelector', 'XPathSelector', \
     'XPathSelectorList']
@@ -38,6 +39,7 @@ class XPathSelector(object_ref):
     def select(self, xpath):
         """Perform the given XPath query on the current XPathSelector and
         return a XPathSelectorList of the result"""
+        xpath = css2xpath(xpath)
         if hasattr(self.xmlNode, 'xpathEval'):
             self.doc.xpathContext.setContextNode(self.xmlNode)
             try:
