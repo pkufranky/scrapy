@@ -64,13 +64,15 @@ class TextResponse(Response):
         if content_type:
             encoding = self._ENCODING_RE.search(content_type)
             if encoding:
-                return encoding.group(1)
+                return self._map_encoding(encoding.group(1))
 
     @memoizemethod_noargs
     def body_as_unicode(self):
         """Return body as unicode"""
+
         possible_encodings = (self._encoding, self.headers_encoding(), \
             self._body_declared_encoding())
+
         dammit = UnicodeDammit(self.body, possible_encodings)
         self._body_inferred_encoding = dammit.originalEncoding
         if self._body_inferred_encoding in ('ascii', None):
@@ -85,3 +87,13 @@ class TextResponse(Response):
     def _body_declared_encoding(self):
         # implemented in subclasses (XmlResponse, HtmlResponse)
         return None
+
+    def _map_encoding(self, encoding):
+        encoding_map = {
+                'gb2312': 'gb18030',
+                }
+        if encoding in encoding_map:
+            return encoding_map[encoding]
+        else:
+            return encoding
+

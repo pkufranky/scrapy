@@ -30,6 +30,7 @@ class HtmlResponse(TextResponse):
     def _body_declared_encoding(self):
         chunk = self.body[:5000]
         match = self.METATAG_RE.search(chunk) or self.METATAG_RE2.search(chunk)
-        return match.group('charset') if match else None
+        encoding = match.group('charset') if match else None
+        return self._map_encoding(encoding)
 
 
