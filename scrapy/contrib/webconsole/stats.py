@@ -6,7 +6,8 @@ from scrapy.management.web import banner, webconsole_discover_module
 def stats_html_table(statsdict):
     s = ""
     s += "<table border='1'>\n"
-    for kv in statsdict.iteritems():
+    stats = sorted(statsdict.iteritems(), None, lambda x: x[0])
+    for kv in stats:
         s += "<tr><th align='left'>%s</th><td>%s</td></tr>\n" % kv
     s += "</table>\n"
     return s
