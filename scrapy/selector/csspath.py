@@ -20,9 +20,12 @@ def css2xpath(css_xpath): # {{{
     '//h1//span/b'
     >>> css2xpath('//span[contains(concat(" ", @class, " "), " red ")]')
     '//span[contains(concat(" ", @class, " "), " red ")]'
+    >>> css2xpath('./span')
+    './span'
     '''
 
     parts = re.split('(/+)', css_xpath)
+    parts = filter(lambda x: x, parts)
     new_parts = []
     for part in parts:
         if not part or re.match('/+', part):
@@ -31,7 +34,8 @@ def css2xpath(css_xpath): # {{{
             new_part = term(part)
         if new_part:
             new_parts.append(new_part)
-    if not new_parts[0].startswith('/'):
+
+    if not new_parts[0].startswith('/') and not new_parts[0].startswith('.'):
         new_parts[0:0] = '//'
 
     return ''.join(new_parts)
