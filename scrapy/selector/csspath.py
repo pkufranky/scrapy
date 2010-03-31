@@ -22,11 +22,16 @@ def css2xpath(css_xpath): # {{{
     '//span[contains(concat(" ", @class, " "), " red ")]'
     >>> css2xpath('./span')
     './span'
+    >>> css2xpath('@href')
+    '@href'
     '''
 
     parts = re.split('(/+)', css_xpath)
     parts = filter(lambda x: x, parts)
     new_parts = []
+    if is_css_path(parts[0]):
+        new_parts.append('//')
+
     for part in parts:
         if not part or re.match('/+', part):
             new_part = part
@@ -35,14 +40,16 @@ def css2xpath(css_xpath): # {{{
         if new_part:
             new_parts.append(new_part)
 
-    if not new_parts[0].startswith('/') and not new_parts[0].startswith('.'):
-        new_parts[0:0] = '//'
 
     return ''.join(new_parts)
 # end def }}}
 
+def is_css_path(path):
+    yes = re.search(r'[.#]?[\w]+', path) and re.match(r'[ >\w#.-]+$', path)
+    return yes
+
 def term(css_or_xpath): # {{{
-    if not re.match('[ >\w#.-]+$', css_or_xpath): # skip non css path
+    if not is_css_path(css_or_xpath): # skip non css path
         return css_or_xpath
 
     parts = re.split('([ >]+)', css_or_xpath)
