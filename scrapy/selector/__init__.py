@@ -130,6 +130,15 @@ class XPathSelectorList(list):
         return the result as a flattened list of unicode strings"""
         return flatten([x.re(regex) for x in self])
 
+    def re1(self, regex, index=0):
+        """Perform the re() method on each XPathSelector of the list, and
+        return the result as a flattened list of unicode strings"""
+        matches = flatten([x.re(regex) for x in self])
+        if len(matches) > index:
+            return matches[index]
+        else:
+            return None
+
     def extract(self):
         """Return a list of unicode strings with the content referenced by each
         XPathSelector of the list"""
