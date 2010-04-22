@@ -79,7 +79,14 @@ class ItemLoader(object):
     def get_output_value(self, field_name):
         proc = self.get_output_processor(field_name)
         proc = wrap_loader_context(proc, self.context)
-        return proc(self._values[field_name])
+        value = proc(self._values[field_name])
+
+        post_proc = self._get_item_field_attr(field_name, 'post_output_processor')
+        if post_proc:
+            post_proc = wrap_loader_context(post_proc, self.context)
+            value = post_proc(value)
+
+        return value
 
     def get_collected_values(self, field_name):
         return self._values[field_name]
@@ -101,7 +108,14 @@ class ItemLoader(object):
     def _process_input_value(self, field_name, value):
         proc = self.get_input_processor(field_name)
         proc = wrap_loader_context(proc, self.context)
-        return proc(value)
+        value = proc(value)
+
+        post_proc = self._get_item_field_attr(field_name, 'post_input_processor')
+        if post_proc:
+            post_proc = wrap_loader_context(post_proc, self.context)
+            value = post_proc(value)
+
+        return value
 
     def _get_item_field_attr(self, field_name, key, default=None):
         if isinstance(self.item, Item):
