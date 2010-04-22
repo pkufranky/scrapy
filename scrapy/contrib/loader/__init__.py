@@ -5,10 +5,12 @@ See documentation in docs/topics/loaders.rst
 """
 
 from collections import defaultdict
+import re
 
 from scrapy.item import Item
 from scrapy.selector import HtmlXPathSelector
-from scrapy.utils.misc import arg_to_iter
+from scrapy.utils.misc import arg_to_iter, extract_regex
+from scrapy.utils.python import flatten
 from .common import wrap_loader_context
 from .processor import Identity
 
@@ -25,15 +27,16 @@ class ItemLoader(object):
         self.context = context
         self._values = defaultdict(list)
 
-    def add_value(self, field_name, value, *processors):
+    def add_value(self, field_name, value, *processors, **kw):
         """ Process and then add value
             field_name - the field to add the processed value
                         * if None, values for multiple fields may be added. The processed
                           value should be a dict with field_name mapped to values.
                         * else the processed value will be only added to the given field
             processors - passed to get_value
+            kw - passed to get_value
         """
-        value = self.get_value(value, *processors)
+        value = self.get_value(value, *processors, **kw)
         if not value:
             return
         if not field_name:
@@ -42,15 +45,16 @@ class ItemLoader(object):
         else:
             self._add_value(field_name, value)
 
-    def replace_value(self, field_name, value, *processors):
+    def replace_value(self, field_name, value, *processors, **kw):
         """ Process and then replace value
             field_name - the field to replace the processed value
                         * if None, values for multiple fields may be replaced. The processed
                           value should be a dict with field_name mapped to values.
                         * else the processed value will be only added to the given field
             processors - passed to get_value
+            kw - passed to get_value
         """
-        value = self.get_value(value, *processors)
+        value = self.get_value(value, *processors, **kw)
         if not value:
             return
         if not field_name:
@@ -69,9 +73,17 @@ class ItemLoader(object):
         self._values.pop(field_name, None)
         self._add_value(field_name, value)
 
-    def get_value(self, value, *processors):
-        """ Process value by processors
+    def get_value(self, value, *processors, **kw):
+        """ Process value by processors and given keyword arguments
+            Available keyword arguments:
+            * re(str or compiled regex) - a regular expression to use for extracting data from the given value,
+                                          applied before processors
         """
+
+        regex = kw.get('re', None)
+        if regex:
+            value = arg_to_iter(value)
+            value = flatten([extract_regex(regex, x) for x in value])
 
         for proc in processors:
             if value is None:
