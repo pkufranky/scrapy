@@ -14,8 +14,12 @@ def css2xpath(css_xpath): # {{{
     '//div/span'
     >>> css2xpath('span.red')
     '//span[contains(concat(" ", @class, " "), " red ")]'
+    >>> css2xpath('.red')
+    '//*[contains(concat(" ", @class, " "), " red ")]'
     >>> css2xpath('div#red')
     '//div[@id="red"]'
+    >>> css2xpath('#red')
+    '//*[@id="red"]'
     >>> css2xpath('//h1 span/b')
     '//h1//span/b'
     >>> css2xpath('//span[contains(concat(" ", @class, " "), " red ")]')
