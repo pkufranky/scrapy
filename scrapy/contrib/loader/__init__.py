@@ -165,7 +165,7 @@ class XPathItemLoader(ItemLoader):
 
 class RegexItemLoader(ItemLoader):
 
-    def __init__(self, item, texts, kv_split=None, **context):
+    def __init__(self, item, texts, kv_split=None, k_processor=None, **context):
         """
         kv_split -
             * if not None, can be callable (as split function) or str (as split regex),
@@ -173,6 +173,7 @@ class RegexItemLoader(ItemLoader):
               and value added to item
             * if None, don't split text. regex given in add_regex will match against the whole text,
               the matched groups are added to item
+        k_processor - callable to process key splitted by kv_split
         """
 
         self.texts = arg_to_iter(texts)
@@ -193,6 +194,8 @@ class RegexItemLoader(ItemLoader):
         else:
             self.kv_split = None
 
+        self.k_processor = k_processor if k_processor else Identity()
+
 
     def add_regex(self, field_name, regex, *processors, **kw):
         value = self._get_values(regex)
@@ -211,6 +214,7 @@ class RegexItemLoader(ItemLoader):
                 kv = self.kv_split(text)
                 if kv and kv[0] and kv[1]:
                     k, v = kv
+                    k = self.k_processor(k)
                     if re.search(regex, k):
                         res_value = v
                 else:
