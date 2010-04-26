@@ -70,10 +70,16 @@ class ItemLoader(object):
             value = proc(value)
         return value
 
-    def load_item(self):
+    def load_item(self, skip_empty=True):
+        """ Populate and return the item
+
+        skip_empty - don't populate empty field
+        """
         item = self.item
         for field_name in self._values:
-            item[field_name] = self.get_output_value(field_name)
+            value = self.get_output_value(field_name)
+            if not skip_empty or value:
+                item[field_name] = value
         return item
 
     def get_output_value(self, field_name):
