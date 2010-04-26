@@ -86,10 +86,17 @@ _is_valid_url = lambda url: url.split('://', 1)[0] in set(['http', 'https', 'fil
 
 class SgmlLinkExtractor(BaseSgmlLinkExtractor):
 
-    def __init__(self, allow=(), deny=(), allow_domains=(), deny_domains=(), restrict_xpaths=(), 
-                 tags=('a', 'area'), attrs=('href'), canonicalize=True, unique=True, process_value=None):
-        self.allow_res = [x if isinstance(x, _re_type) else re.compile(x) for x in arg_to_iter(allow)]
-        self.deny_res = [x if isinstance(x, _re_type) else re.compile(x) for x in arg_to_iter(deny)]
+    def __init__(self, allow=(), deny=(), allow_anchors=(), deny_anchors=(),
+            allow_domains=(), deny_domains=(), restrict_xpaths=(),
+            tags=('a', 'area'), attrs=('href'), canonicalize=True, unique=True, process_value=None):
+
+        def make_regex_iter_arg(arg):
+            return [x if isinstance(x, _re_type) else re.compile(x) for x in arg_to_iter(arg)]
+
+        self.allow_res = make_regex_iter_arg(allow)
+        self.deny_res = make_regex_iter_arg(deny)
+        self.allow_anchors = make_regex_iter_arg(allow_anchors)
+        self.deny_anchors = make_regex_iter_arg(deny_anchors)
         self.allow_domains = set(arg_to_iter(allow_domains))
         self.deny_domains = set(arg_to_iter(deny_domains))
         self.restrict_xpaths = tuple(arg_to_iter(restrict_xpaths))
@@ -118,6 +125,10 @@ class SgmlLinkExtractor(BaseSgmlLinkExtractor):
             links = [link for link in links if _matches(link.url, self.allow_res)]
         if self.deny_res:
             links = [link for link in links if not _matches(link.url, self.deny_res)]
+        if self.allow_anchors:
+            links = [link for link in links if _matches(link.text, self.allow_anchors)]
+        if self.deny_anchors:
+            links = [link for link in links if not _matches(link.text, self.deny_anchors)]
         if self.allow_domains:
             links = [link for link in links if url_is_from_any_domain(link.url, self.allow_domains)]
         if self.deny_domains:

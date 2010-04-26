@@ -95,7 +95,9 @@ class SgmlLinkExtractorTestCase(unittest.TestCase):
             [ Link(url='http://example.com/sample1.html', text=u''),
               Link(url='http://example.com/sample2.html', text=u'sample 2'),
               Link(url='http://example.com/sample3.html', text=u'sample 3 text'),
-              Link(url='http://www.google.com/something', text=u'') ])
+              Link(url='http://www.google.com/something', text=u''),
+              Link(url='http://www.utf8.com/nextpage', text=u'\u4e0b\u4e00\u9875'),
+              ])
 
         lx = SgmlLinkExtractor(allow=('sample', ))
         self.assertEqual([link for link in lx.extract_links(self.response)],
@@ -114,6 +116,13 @@ class SgmlLinkExtractorTestCase(unittest.TestCase):
         self.assertEqual([link for link in lx.extract_links(self.response)],
             [ Link(url='http://example.com/sample1.html', text=u''),
               Link(url='http://example.com/sample2.html', text=u'sample 2') ])
+
+        lx = SgmlLinkExtractor(allow_anchors=('sample.*repetition', ), unique=True)
+        self.assertEqual([link for link in lx.extract_links(self.response)],
+            [ Link(url='http://example.com/sample3.html', text=u'sample 3 repetition') ])
+        lx = SgmlLinkExtractor(allow_anchors=(u'\u4e0b\u4e00', ))
+        self.assertEqual([link for link in lx.extract_links(self.response)],
+            [ Link(url='http://www.utf8.com/nextpage', text=u'\u4e0b\u4e00\u9875') ])
 
         lx = SgmlLinkExtractor(allow_domains=('google.com', ))
         self.assertEqual([link for link in lx.extract_links(self.response)],
@@ -143,7 +152,9 @@ class SgmlLinkExtractorTestCase(unittest.TestCase):
 
         lx = SgmlLinkExtractor(deny_domains='example.com')
         self.assertEqual([link for link in lx.extract_links(self.response)],
-            [ Link(url='http://www.google.com/something', text=u'') ])
+            [ Link(url='http://www.google.com/something', text=u''),
+              Link(url='http://www.utf8.com/nextpage', text=u'\u4e0b\u4e00\u9875'),
+            ])
 
     def test_matches(self):
         url1 = 'http://lotsofstuff.com/stuff1/index'
