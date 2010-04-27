@@ -61,6 +61,13 @@ class ItemLoaderTest(unittest.TestCase):
         self.assertEqual(il.get_collected_values('name'), [u'Marta', u'Pepe'])
         self.assertEqual(il.get_output_value('name'), [u'Marta', u'Pepe'])
 
+        # test add object value
+        il.add_value('summary', {'key': 1})
+        self.assertEqual(il.get_collected_values('summary'), [{'key': 1}])
+
+        il.add_value(None, u'Jim', lambda x: {'name': x})
+        self.assertEqual(il.get_collected_values('name'), [u'Marta', u'Pepe', u'Jim'])
+
     def test_replace_value(self):
         il = TestItemLoader()
         il.replace_value('name', u'marta')
@@ -69,6 +76,21 @@ class ItemLoaderTest(unittest.TestCase):
         il.replace_value('name', u'pepe')
         self.assertEqual(il.get_collected_values('name'), [u'Pepe'])
         self.assertEqual(il.get_output_value('name'), [u'Pepe'])
+
+        il.replace_value(None, u'Jim', lambda x: {'name': x})
+        self.assertEqual(il.get_collected_values('name'), [u'Jim'])
+
+    def test_get_value(self):
+        il = NameItemLoader()
+        self.assertEqual(u'FOO', il.get_value([u'foo', u'bar'], TakeFirst(), unicode.upper))
+        self.assertEqual([u'foo', u'bar'], il.get_value([u'name:foo', u'name:bar'], re=u'name:(.*)$'))
+        self.assertEqual(u'foo', il.get_value([u'name:foo', u'name:bar'], TakeFirst(), re=u'name:(.*)$'))
+
+        il.add_value('name', [u'name:foo', u'name:bar'], TakeFirst(), re=u'name:(.*)$')
+        self.assertEqual([u'foo'], il.get_collected_values('name'))
+        il.replace_value('name', u'name:bar', re=u'name:(.*)$')
+        self.assertEqual([u'bar'], il.get_collected_values('name'))
+
 
     def test_iter_on_input_processor_input(self):
         class NameFirstItemLoader(NameItemLoader):
@@ -340,6 +362,24 @@ class XPathItemLoaderTest(unittest.TestCase):
         l.add_xpath('name', '//div/text()')
         self.assertEqual(l.get_output_value('name'), [u'Marta'])
         l.replace_xpath('name', '//p/text()')
+        self.assertEqual(l.get_output_value('name'), [u'Paragraph'])
+
+        l.replace_xpath('name', ['//p/text()', '//div/text()'])
+        self.assertEqual(l.get_output_value('name'), [u'Paragraph', 'Marta'])
+
+    def test_get_xpath(self):
+        l = TestXPathItemLoader(response=self.response)
+        self.assertEqual(l.get_xpath('//p/text()'), [u'paragraph'])
+        self.assertEqual(l.get_xpath('//p/text()', TakeFirst()), u'paragraph')
+        self.assertEqual(l.get_xpath('//p/text()', TakeFirst(), re='pa'), u'pa')
+
+        self.assertEqual(l.get_xpath(['//p/text()', '//div/text()']), [u'paragraph', 'marta'])
+
+    def test_replace_xpath_multi_fields(self):
+        l = TestXPathItemLoader(response=self.response)
+        l.add_xpath(None, '//div/text()', TakeFirst(), lambda x: {'name': x})
+        self.assertEqual(l.get_output_value('name'), [u'Marta'])
+        l.replace_xpath(None, '//p/text()', TakeFirst(), lambda x: {'name': x})
         self.assertEqual(l.get_output_value('name'), [u'Paragraph'])
 
     def test_replace_xpath_re(self):
