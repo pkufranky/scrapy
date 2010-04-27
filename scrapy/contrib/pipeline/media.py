@@ -65,7 +65,7 @@ class MediaPipeline(object):
     def _download(self, request, info, fp):
         def _downloaded(result):
             info.downloading.pop(fp)
-            info.downloaded[fp] = result
+            #info.downloaded[fp] = result
             for wad in info.waiting.pop(fp): # pass result to each waiting client
                 defer_result(result).chainDeferred(wad)
 

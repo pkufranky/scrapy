@@ -25,6 +25,14 @@ class IgnoreRequest(Exception):
     def __str__(self):
         return self.msg
 
+class IgnoreDuplicatedRequest(IgnoreRequest):
+    def __init__(self, request, msg=''):
+        self.msg = msg
+        self.request = request
+
+    def __str__(self):
+        return 'Duplicated request %s: %s' % (self.request, self.msg)
+
 class DontCloseSpider(Exception):
     """Request the spider not to be closed yet"""
     pass
