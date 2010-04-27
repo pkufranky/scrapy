@@ -42,6 +42,8 @@ class Compose(object):
             context = self.default_loader_context
         wrapped_funcs = [wrap_loader_context(f, context) for f in self.functions]
         for func in wrapped_funcs:
+            if value is None:
+                break
             value = func(value)
         return value
 
