@@ -171,6 +171,8 @@ class Scraper(object):
             dfd = self.itemproc.process_item(output, spider)
             dfd.addBoth(self._itemproc_finished, output, spider)
             return dfd
+        elif isinstance(output, BatchRequest):
+            self.engine.batch_crawl(batch_request=output, spider=spider)
         elif output is None:
             pass
         else:

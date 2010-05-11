@@ -177,6 +177,20 @@ class ExecutionEngine(object):
         schd.addErrback(log.err, "Unhandled error on engine.crawl()", spider=spider)
         schd.addBoth(lambda _: self.next_request(spider))
 
+    def batch_crawl(self, batch_request, spider):
+        """
+        batch_request - BatchRequest instance
+        """
+        dlist = []
+        for request in batch_request.requests:
+            schd = mustbe_deferred(self.schedule, request, spider)
+            dlist.append(schd)
+
+        defd = DeferredList(dlist, consumeErrors=1).addCallback(batch_request.deferred)
+        defd.addBoth(lambda _: self.next_request(spider))
+
+        return defd
+
     def schedule(self, request, spider):
         if spider in self.closing:
             raise IgnoreRequest()
