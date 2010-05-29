@@ -143,7 +143,7 @@ class XPathItemLoader(ItemLoader):
 
 class RegexItemLoader(ItemLoader):
 
-    def __init__(self, item, texts, kv_split=None, k_processor=None, **context):
+    def __init__(self, item, texts, kv_split=None, line_processor=None, k_processor=None, **context):
         """
         kv_split -
             * if not None, can be callable (as split function) or str (as split regex),
@@ -152,9 +152,12 @@ class RegexItemLoader(ItemLoader):
             * if None, don't split text. regex given in add_regex will match against the whole text,
               the matched groups are added to item
         k_processor - callable to process key splitted by kv_split
+        line_processor - callable to process a single line before kv_split
         """
 
         self.texts = arg_to_iter(texts)
+        if line_processor:
+            self.texts = [line_processor(x) for x in self.texts]
         context.update(texts=texts)
         super(RegexItemLoader, self).__init__(item, **context)
 
