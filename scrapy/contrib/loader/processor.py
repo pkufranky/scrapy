@@ -4,6 +4,7 @@ This module provides some commonly used processors for Item Loaders.
 See documentation in docs/topics/loaders.rst
 """
 
+import re
 from scrapy.utils.misc import arg_to_iter
 from scrapy.utils.datatypes import MergeDict
 from scrapy.utils.python import flatten
@@ -94,7 +95,6 @@ class RegexExtract(object):
         self.regexes = arg_to_iter(regexes)
 
     def __call__(self, value):
-        import re
         matches = ()
         values = arg_to_iter(value)
         for value in values:
