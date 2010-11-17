@@ -124,6 +124,15 @@ class SgmlLinkExtractorTestCase(unittest.TestCase):
             [ Link(url='http://example.com/sample1.html', text=u''),
               Link(url='http://example.com/sample2.html', text=u'sample 2') ])
 
+        lx = SgmlLinkExtractor(allow_anchors=('sample.*repetition', ))
+        self.assertEqual([link for link in lx.extract_links(self.response)],
+            [ Link(url='http://example.com/sample3.html', text=u'sample 3 repetition') ])
+
+        lx = SgmlLinkExtractor(allow=('sample', ), deny_anchors=('sample 3', ))
+        self.assertEqual([link for link in lx.extract_links(self.response)],
+            [ Link(url='http://example.com/sample1.html', text=u''),
+              Link(url='http://example.com/sample2.html', text=u'sample 2') ])
+
         lx = SgmlLinkExtractor(allow_domains=('google.com', ))
         self.assertEqual([link for link in lx.extract_links(self.response)],
             [ Link(url='http://www.google.com/something', text=u'') ])
