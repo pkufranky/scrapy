@@ -7,6 +7,7 @@ See documentation in docs/topics/item.rst
 from UserDict import DictMixin
 
 from scrapy.utils.trackref import object_ref
+from scrapy.utils.python import str_to_unicode
 
 class BaseItem(object_ref):
     """Base class for all scraped items."""
@@ -83,6 +84,16 @@ class DictItem(DictMixin, BaseItem):
         """
         values = ', '.join('%s=%r' % field for field in self.iteritems())
         return "%s(%s)" % (self.__class__.__name__, values)
+    def __str__(self):
+        values = []
+        field_max_len = 32
+        for k,v in self.iteritems():
+            desc = str_to_unicode('%s=%s' % (k, v))
+            if len(desc) > field_max_len:
+                desc = '%s...' % desc[0:field_max_len]
+            values.append(desc)
+        s = u', '.join(values)
+        return "%s(%s)" % (self.__class__.__name__, s)
 
 
 class Item(DictItem):

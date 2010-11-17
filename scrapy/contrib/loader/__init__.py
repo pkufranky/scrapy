@@ -114,7 +114,7 @@ class XPathItemLoader(ItemLoader):
 
     default_selector_class = HtmlXPathSelector
 
-    def __init__(self, item=None, selector=None, response=None, **context):
+    def __init__(self, item=None, selector=None, response=None, input_processor=None, output_processor=None, **context):
         if selector is None and response is None:
             raise RuntimeError("%s must be instantiated with a selector " \
                 "or response" % self.__class__.__name__)
@@ -123,6 +123,10 @@ class XPathItemLoader(ItemLoader):
         self.selector = selector
         context.update(selector=selector, response=response)
         super(XPathItemLoader, self).__init__(item, **context)
+        if input_processor:
+            self.default_input_processor = input_processor
+        if output_processor:
+            self.default_output_processor = output_processor
 
     def add_xpath(self, field_name, xpath, *processors, **kw):
         values = self._get_values(xpath, **kw)
