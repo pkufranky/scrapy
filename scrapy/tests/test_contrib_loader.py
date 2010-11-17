@@ -1,6 +1,6 @@
 import unittest
 
-from scrapy.contrib.loader import ItemLoader, XPathItemLoader
+from scrapy.contrib.loader import ItemLoader, XPathItemLoader, RegexItemLoader
 from scrapy.contrib.loader.processor import Join, Identity, TakeFirst, \
     Compose, MapCompose
 from scrapy.item import Item, Field
@@ -398,6 +398,46 @@ class XPathItemLoaderTest(unittest.TestCase):
         self.assertEqual(l.get_output_value('name'), [u'Marta'])
         l.replace_xpath('name', '//div/text()', re='ma')
         self.assertEqual(l.get_output_value('name'), [u'Ma'])
+
+class RegexItemLoaderTest(unittest.TestCase):
+    texts = [u'name: Bob', u'name: Tom', u'sex: male']
+
+    def test_constructor(self):
+        l = RegexItemLoader({}, u'name: Bob')
+        self.assertEqual(l.get_regex(u'name:(.*)'), [u' Bob'])
+        l = RegexItemLoader({}, (u'name: Bob',))
+        self.assertEqual(l.get_regex(u'name:(.*)'), [u' Bob'])
+
+    def test_add_regex(self):
+        l = RegexItemLoader({}, self.texts)
+        l.add_regex('name', u'name: (.*)$')
+        self.assertEqual(l.get_collected_values('name'), [u'Bob', u'Tom'])
+        l.replace_regex('name', u'name:(.*)$', TakeFirst())
+        self.assertEqual(l.get_collected_values('name'), [u' Bob'])
+
+    def test_add_regex_multi_fields(self):
+        l = RegexItemLoader({}, self.texts)
+        l.add_regex(None, u'name: (.*)$', TakeFirst(), lambda x: {'name': x.upper()})
+        self.assertEqual(l.get_collected_values('name'), [u'BOB'])
+        l.replace_regex(None, u'name: (.*)$', TakeFirst(), lambda x: {'name': x})
+        self.assertEqual(l.get_collected_values('name'), [u'Bob'])
+
+    def test_regex_split(self):
+        l = RegexItemLoader({}, self.texts, kv_split=u':')
+        self.assertEqual(l.get_regex(u'name'), [u' Bob', u' Tom'])
+        self.assertEqual(l.get_regex(u'sex'), [u' male'])
+
+        l.add_regex('name', u'name')
+        self.assertEqual(l.get_collected_values('name'), [u' Bob', u' Tom'])
+        l.replace_regex('name', u'name', TakeFirst(), unicode.strip)
+        self.assertEqual(l.get_collected_values('name'), [u'Bob'])
+
+
+    def test_get_regex(self):
+        l = RegexItemLoader({}, self.texts)
+        self.assertEqual(l.get_regex(u'name:(.*)'), [u' Bob', u' Tom'])
+        self.assertEqual(l.get_regex(u'name:(.*)', TakeFirst(), unicode.strip), u'Bob')
+        self.assertEqual(l.get_regex(u'name:(.*)', TakeFirst(), re='Bo'), u'Bo')
 
 
 if __name__ == "__main__":

@@ -144,3 +144,69 @@ class XPathItemLoader(ItemLoader):
         xpaths = arg_to_iter(xpaths)
         return flatten([self.selector.select(xpath).extract() for xpath in xpaths])
 
+
+class RegexItemLoader(ItemLoader):
+
+    def __init__(self, item, texts, kv_split=None, line_processor=None, k_processor=None, **context):
+        """
+        kv_split -
+            * if not None, can be callable (as split function) or str (as split regex),
+              split text as key, value pair. regex given in add_regex will match against the key,
+              and value added to item
+            * if None, don't split text. regex given in add_regex will match against the whole text,
+              the matched groups are added to item
+        k_processor - callable to process key splitted by kv_split
+        line_processor - callable to process a single line before kv_split
+        """
+
+        self.texts = arg_to_iter(texts)
+        if line_processor:
+            self.texts = [line_processor(x) for x in self.texts]
+        context.update(texts=texts)
+        super(RegexItemLoader, self).__init__(item, **context)
+
+        if callable(kv_split):
+            self.kv_split = kv_split
+        elif kv_split:
+            assert isinstance(kv_split, unicode)
+            splitter = kv_split
+            def kv_split(text):
+                parts = re.split(splitter, text, 1)
+                if len(parts) != 2:
+                    return None
+                return (parts[0], parts[1])
+            self.kv_split = kv_split
+        else:
+            self.kv_split = None
+
+        self.k_processor = k_processor if k_processor else Identity()
+
+
+    def add_regex(self, field_name, regex, *processors, **kw):
+        value = self._get_values(regex)
+        self.add_value(field_name, value, *processors, **kw)
+    def replace_regex(self, field_name, regex, *processors, **kw):
+        value = self._get_values(regex)
+        self.replace_value(field_name, value, *processors, **kw)
+    def get_regex(self, regex, *processors, **kw):
+        value = self._get_values(regex)
+        return self.get_value(value, *processors, **kw)
+
+    def _get_values(self, regex):
+        def extract(text):
+            res_value = []
+            if self.kv_split:
+                kv = self.kv_split(text)
+                if kv and kv[0] and kv[1]:
+                    k, v = kv
+                    k = self.k_processor(k)
+                    if re.search(regex, k):
+                        res_value = v
+                else:
+                    res_value = []
+            else:
+                res_value = extract_regex(regex, text)
+
+            return res_value
+
+        return flatten([extract(x) for x in self.texts])
