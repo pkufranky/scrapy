@@ -10,6 +10,7 @@ from scrapy.utils.python import unicode_to_str
 from scrapy.utils.decorator import deprecated
 from scrapy.http import TextResponse
 from .list import XPathSelectorList
+from .csspath import css2xpath
 
 __all__ = ['HtmlXPathSelector', 'XmlXPathSelector', 'XPathSelector', \
     'XPathSelectorList']
@@ -47,6 +48,7 @@ class XPathSelector(object_ref):
         return self._xpathev
 
     def select(self, xpath):
+        xpath = css2xpath(xpath)
         try:
             result = self.xpathev(xpath)
         except etree.XPathError:
