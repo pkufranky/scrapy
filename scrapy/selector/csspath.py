@@ -6,8 +6,12 @@ def css2xpath(css_xpath): # {{{
 
     css2xpath('td[1] a') is not yet supported
 
+    >>> css2xpath('./span#red')
+    './span[@id="red"]'
     >>> css2xpath('span')
     '//span'
+    >>> css2xpath('span, div#id1')
+    '//span | //div[@id="id1"]'
     >>> css2xpath('div span')
     '//div//span'
     >>> css2xpath('div > span')
@@ -35,6 +39,9 @@ def css2xpath(css_xpath): # {{{
     >>> css2xpath('div#red[1]')
     '//div[@id="red"][1]'
     '''
+
+    if ',' in css_xpath and not re.search(r'[()\[\]]', css_xpath): # div, span => //div | //span
+        return ' | '.join(css2xpath(x) for x in re.split(r'\s*,\s*', css_xpath))
 
     parts = re.split('(/+)', css_xpath)
     parts = filter(lambda x: x, parts)
